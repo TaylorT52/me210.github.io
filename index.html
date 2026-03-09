@@ -313,7 +313,7 @@
     <main class="page">
       <header class="hero">
         <h1>ME210 Curling Robot</h1>
-        <p class="subtitle">Autonomous scoring robot built for fast cycle timing, defensive play, and late-game burst shooting.</p>
+        <p class="subtitle">Autonomous scoring robot tuned for repeatable loop-and-fire cycles.</p>
         <div class="hero-grid">
           <article class="chip">
             <div class="k">Drive Base</div>
@@ -321,7 +321,7 @@
           </article>
           <article class="chip">
             <div class="k">Main Mission</div>
-            <div class="v">Shoot Last for Max Score</div>
+            <div class="v">Run Loop + Fire Pucks</div>
           </article>
           <article class="chip">
             <div class="k">Travel Reference</div>
@@ -361,13 +361,13 @@
           <div class="columns">
             <div>
               <p>
-                The robot is tuned to <span class="accent">play a curling-style endgame</span>: establish defensive puck positions early, then
-                shoot multiple pieces near the end.
+                The current match strategy is a <span class="accent">repeatable autonomous loop</span>: drive to position, align, fire pucks
+                into the target, return, and run the same cycle again.
               </p>
               <ul>
-                <li>First phase: place defensive pucks to limit opponent scoring lanes.</li>
-                <li>Middle phase: move own pieces into prepared shooting positions.</li>
-                <li>Final phase: rapid multi-shot launch sequence while holding heading.</li>
+                <li>Use ultrasonic + IMU to reach the shooting pose reliably each cycle.</li>
+                <li>Spin up shooter and strafe through the shot path to release pucks quickly.</li>
+                <li>Return/reset and repeat the same routine until match time or pieces run out.</li>
               </ul>
             </div>
             <div>
@@ -377,7 +377,7 @@
                 <li>16 in ring: 2 points</li>
                 <li>8 in ring: 5 points</li>
               </ul>
-              <p class="small">Goal is to keep pieces in strong positions until the final shots are fired.</p>
+              <p class="small">Goal is steady scoring on every loop with consistent placement and shot timing.</p>
             </div>
           </div>
         </section>
@@ -395,8 +395,7 @@
             </div>
             <div>
               <p class="small">
-                The frame is optimized for predictable straight-line motion and quick repositioning between load, defensive placement, and shoot
-                zones.
+                The frame is optimized for predictable straight-line motion and fast reset between repeated shooting loops.
               </p>
             </div>
           </div>
@@ -410,12 +409,12 @@
                 <li>Flywheel launcher maintains wheel speed between shots for quick bursts.</li>
                 <li>Reload path keeps game pieces close to the ground for stable feed-in.</li>
                 <li>Shooter wheel and feed mechanism are staged for repeated multi-piece firing.</li>
-                <li>Beam-break sensing confirms piece transitions through the feed path.</li>
+                <li>Final build uses timed shooter/feed sequencing (no beam-break sensor gating).</li>
               </ul>
             </div>
             <div>
               <p class="small">
-                The mechanism is designed for both deliberate placement and aggressive final volleys, depending on game state.
+                The mechanism is tuned for consistent release timing while the robot runs the same shot loop repeatedly.
               </p>
             </div>
           </div>
@@ -428,14 +427,13 @@
               <ul>
                 <li>Two ultrasonic sensors estimate X/Y position from known arena walls.</li>
                 <li>IMU used to hold heading and reduce drift during straight-drive segments.</li>
-                <li>Beam-break sensors support puck detection and shooter sequencing.</li>
-                <li>Optical and long-range ultrasonic piece-detection approaches were tested and rejected for reliability limits.</li>
+                <li>No beam-break sensors in final configuration; shot timing is command-driven.</li>
+                <li>State machine loops through align -> shoot -> return for repeatable autonomous cycles.</li>
               </ul>
             </div>
             <div>
               <p class="small">
-                FSM structure separates motion states (<code>drive_home</code>, <code>drive_shoot_pos</code>, <code>idle</code>) from shooter
-                states (<code>shoot_piece</code>, <code>reload</code>, <code>unload</code>, <code>done</code>) for clearer behavior control.
+                Motion and shooter actions are coordinated by staged states, with heading hold and sensor-guided positioning at each loop.
               </p>
             </div>
           </div>
@@ -443,7 +441,7 @@
 
         <section>
           <h2>Final Arduino Code (Implemented)</h2>
-          <p class="small">The autonomous routine below matches your final firmware architecture and constants.</p>
+          <p class="small">The final firmware runs a repeated loop-and-fire routine and does not use beam-break sensors.</p>
           <div class="columns">
             <div>
               <ul>
@@ -463,7 +461,7 @@
             </div>
           </div>
           <details class="firmware-block">
-            <summary>View Final State Flow from Code</summary>
+            <summary>View Final Loop Flow from Code</summary>
             <div class="firmware-body">
               <div class="timeline">
                 <div class="step">
@@ -471,20 +469,17 @@
                   Initialize MPU6050, calibrate offsets, configure PCA9685 (1 kHz), attach encoder interrupts.
                 </div>
                 <div class="step">
-                  <div class="label">Alignment</div>
+                  <div class="label">Loop Align</div>
                   <code>INITIAL_ROTATE</code> -> <code>DRIVE_BACK_TIMED</code> -> <code>STOP_AND_ZERO</code> -> <code>SPIN_180</code>.
                 </div>
                 <div class="step">
-                  <div class="label">Sensor-Guided Move</div>
-                  <code>DRIVE_TO_SETPOINT</code> uses mecanum vector drive with heading hold (<code>HEADING_KP=2.0</code>).
+                  <div class="label">Setpoint + Shoot</div>
+                  <code>DRIVE_TO_SETPOINT</code> -> <code>TURN_TO_SHOOT_ANGLE</code> -> <code>SPIN_UP_SHOOTER</code> ->
+                  <code>SHOOT_AND_STRAFE</code>.
                 </div>
                 <div class="step">
-                  <div class="label">Shooting Sequence</div>
-                  <code>TURN_TO_SHOOT_ANGLE</code> -> <code>SPIN_UP_SHOOTER</code> -> <code>SHOOT_AND_STRAFE</code>.
-                </div>
-                <div class="step">
-                  <div class="label">Return + Finish</div>
-                  <code>ROTATE_TO_ZERO</code> -> <code>DRIVE_HOME</code> (sensor guided) -> <code>DONE</code>.
+                  <div class="label">Reset + Repeat</div>
+                  <code>ROTATE_TO_ZERO</code> -> <code>DRIVE_HOME</code>, then rerun the loop. No beam-break state gating is used.
                 </div>
               </div>
             </div>
@@ -492,24 +487,24 @@
         </section>
 
         <section>
-          <h2>Cycle Timing Plan</h2>
-          <p class="small">Baseline motion estimate: ~4 seconds travel per leg at approximately 0.5 m/s.</p>
+          <h2>Loop Timing Plan</h2>
+          <p class="small">Baseline motion estimate remains ~4 seconds per travel leg at approximately 0.5 m/s.</p>
           <div class="timeline">
             <div class="step">
-              <div class="label">Cycle 1 (~18s)</div>
-              Travel to launch zone, fire ~3 pucks for defense, return.
+              <div class="label">Loop Step 1</div>
+              Align and drive to the shoot setpoint using ultrasonic + IMU heading hold.
             </div>
             <div class="step">
-              <div class="label">Cycle 2 (~15s)</div>
-              Reload, travel, drop ~2 pieces on ground for setup, return.
+              <div class="label">Loop Step 2</div>
+              Turn to shooting angle, spin up flywheel, and strafe while firing pucks.
             </div>
             <div class="step">
-              <div class="label">Cycle 3 (~15s)</div>
-              Reload, travel, drop ~3 pieces into setup cluster, return.
+              <div class="label">Loop Step 3</div>
+              Rotate back to zero heading and drive home/reset.
             </div>
             <div class="step">
-              <div class="label">Endgame</div>
-              Wait window, then final two shooting cycles to clear staged pucks quickly.
+              <div class="label">Repeat</div>
+              Run the same loop again for consistent scoring rather than separate defense/endgame phases.
             </div>
           </div>
         </section>
