@@ -236,6 +236,27 @@
         border-radius: 8px;
       }
 
+      .firmware-block {
+        margin-top: 0.8rem;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff7e8;
+        overflow: hidden;
+      }
+
+      .firmware-block summary {
+        cursor: pointer;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.86rem;
+        font-weight: 600;
+        padding: 0.7rem 0.85rem;
+        background: #f6ecd9;
+      }
+
+      .firmware-body {
+        padding: 0.85rem;
+      }
+
       .label {
         font-family: "IBM Plex Mono", monospace;
         font-size: 0.78rem;
@@ -418,6 +439,56 @@
               </p>
             </div>
           </div>
+        </section>
+
+        <section>
+          <h2>Final Arduino Code (Implemented)</h2>
+          <p class="small">The autonomous routine below matches your final firmware architecture and constants.</p>
+          <div class="columns">
+            <div>
+              <ul>
+                <li><strong>Core libraries:</strong> <code>Wire</code>, <code>Adafruit_PWMServoDriver</code>, <code>MPU6050_light</code>.</li>
+                <li><strong>Motor control:</strong> all drivetrain + shooter PWM routed through PCA9685 channels.</li>
+                <li><strong>Sensors:</strong> two ultrasonic sensors (right/back), MPU6050 yaw hold, quadrature shooter encoder.</li>
+                <li><strong>Shooter control:</strong> PID loop with <code>KP=0.2</code>, <code>KI=0.8</code>, <code>KD=0.005</code>.</li>
+              </ul>
+            </div>
+            <div>
+              <ul>
+                <li><strong>Main setpoints:</strong> <code>RIGHT_SETPOINT=25cm</code>, <code>BACK_SETPOINT=160cm</code>.</li>
+                <li><strong>Home setpoints:</strong> <code>HOME_RIGHT_SETPOINT=75cm</code>, <code>HOME_BACK_SETPOINT=4cm</code>.</li>
+                <li><strong>Shot alignment:</strong> <code>SHOOT_ANGLE=-60deg</code>, <code>ANGLE_TOLERANCE=3deg</code>.</li>
+                <li><strong>Shooter command:</strong> ramp during strafe using <code>SHOOTER_START + SHOOTER_REDUCE * elapsed</code>.</li>
+              </ul>
+            </div>
+          </div>
+          <details class="firmware-block">
+            <summary>View Final State Flow from Code</summary>
+            <div class="firmware-body">
+              <div class="timeline">
+                <div class="step">
+                  <div class="label">Boot + Setup</div>
+                  Initialize MPU6050, calibrate offsets, configure PCA9685 (1 kHz), attach encoder interrupts.
+                </div>
+                <div class="step">
+                  <div class="label">Alignment</div>
+                  <code>INITIAL_ROTATE</code> -> <code>DRIVE_BACK_TIMED</code> -> <code>STOP_AND_ZERO</code> -> <code>SPIN_180</code>.
+                </div>
+                <div class="step">
+                  <div class="label">Sensor-Guided Move</div>
+                  <code>DRIVE_TO_SETPOINT</code> uses mecanum vector drive with heading hold (<code>HEADING_KP=2.0</code>).
+                </div>
+                <div class="step">
+                  <div class="label">Shooting Sequence</div>
+                  <code>TURN_TO_SHOOT_ANGLE</code> -> <code>SPIN_UP_SHOOTER</code> -> <code>SHOOT_AND_STRAFE</code>.
+                </div>
+                <div class="step">
+                  <div class="label">Return + Finish</div>
+                  <code>ROTATE_TO_ZERO</code> -> <code>DRIVE_HOME</code> (sensor guided) -> <code>DONE</code>.
+                </div>
+              </div>
+            </div>
+          </details>
         </section>
 
         <section>
