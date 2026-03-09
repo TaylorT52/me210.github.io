@@ -287,7 +287,6 @@
         }
       }
     </style>
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   </head>
   <body>
     <main class="page">
@@ -456,21 +455,48 @@
           return;
         }
 
-        if (!customElements.get("model-viewer")) {
-          status.textContent = "3D viewer script did not load. Check internet access or CDN blocking.";
-          status.classList.add("warn");
-          return;
-        }
-
         viewer.addEventListener("load", function () {
           status.textContent = "CAD loaded. Drag to rotate, scroll to zoom.";
         });
 
         viewer.addEventListener("error", function () {
-          status.textContent =
-            "Could not load assets/robot.glb. Check filename/path and open this page from a local server (http://localhost), not file://.";
+          status.textContent = "Could not load assets/robot.glb. Check path/casing and GitHub Pages file upload.";
           status.classList.add("warn");
         });
+
+        function markViewerScriptFailure() {
+          status.textContent = "3D viewer script failed to load from CDN. The rest of the page should still work.";
+          status.classList.add("warn");
+        }
+
+        function loadModelViewerScript(src, onSuccess, onError) {
+          var moduleScript = document.createElement("script");
+          moduleScript.type = "module";
+          moduleScript.src = src;
+          moduleScript.onload = onSuccess;
+          moduleScript.onerror = onError;
+          document.head.appendChild(moduleScript);
+        }
+
+        function finalizeScriptLoadCheck() {
+          window.setTimeout(function () {
+            if (!("customElements" in window) || !customElements.get("model-viewer")) {
+              markViewerScriptFailure();
+            }
+          }, 400);
+        }
+
+        loadModelViewerScript(
+          "https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js",
+          finalizeScriptLoadCheck,
+          function () {
+            loadModelViewerScript(
+              "https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js",
+              finalizeScriptLoadCheck,
+              markViewerScriptFailure
+            );
+          }
+        );
       });
     </script>
   </body>
