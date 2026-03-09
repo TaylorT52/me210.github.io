@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ME210 Curling Robot | Design Overview</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap");
+
+      :root {
+        --bg: #f4f0e8;
+        --paper: #fffaf1;
+        --ink: #1d1f25;
+        --accent: #0f8a6f;
+        --accent-2: #d85f3f;
+        --line: #d8cab4;
+        --muted: #6f6656;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Space Grotesk", "Avenir Next", "Segoe UI", sans-serif;
+        color: var(--ink);
+        background: radial-gradient(circle at 10% 10%, #fff6de 0%, #f4f0e8 40%, #ece8df 100%);
+        min-height: 100%;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(131, 106, 70, 0.08) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(131, 106, 70, 0.08) 1px, transparent 1px);
+        background-size: 36px 36px;
+        z-index: 0;
+      }
+
+      .page {
+        position: relative;
+        z-index: 1;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1.2rem 4rem;
+      }
+
+      .hero {
+        background: linear-gradient(140deg, #fff5da 0%, #f9f6ef 55%, #e9f7f3 100%);
+        border: 2px solid var(--ink);
+        border-radius: 24px;
+        padding: 2rem;
+        box-shadow: 10px 12px 0 #d4c8b4;
+        overflow: hidden;
+        position: relative;
+        animation: rise 0.8s ease-out both;
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: rgba(15, 138, 111, 0.18);
+        right: -70px;
+        top: -120px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4.8vw, 3.2rem);
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+
+      .subtitle {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.95rem;
+        margin-top: 0.75rem;
+        color: var(--muted);
+      }
+
+      .hero-grid {
+        margin-top: 1.4rem;
+        display: grid;
+        gap: 0.9rem;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      }
+
+      .chip {
+        background: var(--paper);
+        border: 1.5px solid var(--ink);
+        border-radius: 12px;
+        padding: 0.75rem 0.85rem;
+      }
+
+      .chip .k {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .chip .v {
+        font-weight: 700;
+        margin-top: 0.2rem;
+      }
+
+      .sections {
+        margin-top: 1.2rem;
+        display: grid;
+        gap: 1rem;
+      }
+
+      section {
+        background: rgba(255, 251, 242, 0.92);
+        border: 1.5px solid var(--line);
+        border-radius: 18px;
+        padding: 1.2rem;
+        backdrop-filter: blur(1px);
+        animation: rise 0.9s ease-out both;
+      }
+
+      section:nth-child(2) {
+        animation-delay: 0.08s;
+      }
+
+      section:nth-child(3) {
+        animation-delay: 0.16s;
+      }
+
+      section:nth-child(4) {
+        animation-delay: 0.24s;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+        line-height: 1.1;
+        margin-bottom: 0.75rem;
+      }
+
+      p {
+        margin: 0.35rem 0;
+        line-height: 1.55;
+      }
+
+      .small {
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+
+      .columns {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+
+      ul {
+        margin: 0.5rem 0 0;
+        padding-left: 1.1rem;
+      }
+
+      li {
+        margin: 0.3rem 0;
+      }
+
+      .accent {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .warn {
+        color: var(--accent-2);
+        font-weight: 700;
+      }
+
+      .timeline {
+        margin-top: 0.5rem;
+        display: grid;
+        gap: 0.6rem;
+      }
+
+      .viewer-grid {
+        display: block;
+      }
+
+      model-viewer {
+        width: 100%;
+        height: 420px;
+        border: 1.5px solid #4d5564;
+        border-radius: 14px;
+        background: radial-gradient(circle at 50% 30%, #2a2f3a 0%, #151922 55%, #0c0f14 100%);
+      }
+
+      .cad-section {
+        background: linear-gradient(170deg, #141922 0%, #10141b 100%);
+        border: 1.5px solid #252c39;
+        color: #f2f6ff;
+      }
+
+      .cad-section h2 {
+        color: #ffffff;
+      }
+
+      .cad-section .small {
+        color: #c1c9d8;
+      }
+
+      .viewer-panel {
+        display: grid;
+        gap: 0.45rem;
+      }
+
+      .viewer-status {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.8rem;
+        color: #d7deec;
+      }
+
+      .step {
+        border-left: 4px solid var(--accent);
+        background: #f2fbf8;
+        padding: 0.6rem 0.75rem;
+        border-radius: 8px;
+      }
+
+      .label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+
+      .footer {
+        margin-top: 1rem;
+        text-align: center;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.82rem;
+        color: var(--muted);
+      }
+
+      code {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.9em;
+        background: #efe6d6;
+        border: 1px solid #deceb4;
+        border-radius: 4px;
+        padding: 0 0.28rem;
+      }
+
+      @keyframes rise {
+        from {
+          transform: translateY(14px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .hero {
+          padding: 1.4rem;
+          border-radius: 18px;
+          box-shadow: 7px 8px 0 #d4c8b4;
+        }
+
+        section {
+          border-radius: 14px;
+          padding: 1rem;
+        }
+
+        model-viewer {
+          height: 320px;
+        }
+      }
+    </style>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <h1>ME210 Curling Robot</h1>
+        <p class="subtitle">Autonomous scoring robot built for fast cycle timing, defensive play, and late-game burst shooting.</p>
+        <div class="hero-grid">
+          <article class="chip">
+            <div class="k">Drive Base</div>
+            <div class="v">4 Mecanum Wheels</div>
+          </article>
+          <article class="chip">
+            <div class="k">Main Mission</div>
+            <div class="v">Shoot Last for Max Score</div>
+          </article>
+          <article class="chip">
+            <div class="k">Travel Reference</div>
+            <div class="v">~67 in to Hog Line</div>
+          </article>
+          <article class="chip">
+            <div class="k">Positioning Accuracy</div>
+            <div class="v">~0.25 in (tested)</div>
+          </article>
+        </div>
+      </header>
+
+      <div class="sections">
+        <section class="cad-section">
+          <h2>Interactive CAD Viewer</h2>
+          <p class="small">Drag to rotate, scroll to zoom, and right-drag (or two-finger drag) to pan.</p>
+          <div class="viewer-grid">
+            <div class="viewer-panel">
+              <model-viewer
+                id="robot-model"
+                src="assets/robot.glb"
+                ios-src="assets/robot.usdz"
+                alt="3D CAD model of the ME210 curling robot"
+                camera-controls
+                auto-rotate
+                rotation-per-second="20deg"
+                interaction-prompt="auto"
+                shadow-intensity="1"
+              ></model-viewer>
+              <p id="viewer-status" class="viewer-status">Loading CAD model...</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Strategy Overview</h2>
+          <div class="columns">
+            <div>
+              <p>
+                The robot is tuned to <span class="accent">play a curling-style endgame</span>: establish defensive puck positions early, then
+                shoot multiple pieces near the end.
+              </p>
+              <ul>
+                <li>First phase: place defensive pucks to limit opponent scoring lanes.</li>
+                <li>Middle phase: move own pieces into prepared shooting positions.</li>
+                <li>Final phase: rapid multi-shot launch sequence while holding heading.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="warn">Scoring target zones:</p>
+              <ul>
+                <li>24 in ring: 1 point</li>
+                <li>16 in ring: 2 points</li>
+                <li>8 in ring: 5 points</li>
+              </ul>
+              <p class="small">Goal is to keep pieces in strong positions until the final shots are fired.</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Drivetrain and Frame</h2>
+          <div class="columns">
+            <div>
+              <ul>
+                <li>4-wheel mecanum layout for holonomic movement and fast lateral correction.</li>
+                <li>200 RPM, 12V DC motors selected as a cost/performance balance.</li>
+                <li>L298N motor drivers with an XL6019 boost stage for robust supply overhead.</li>
+                <li>3D-printed motor mounts integrated into an aluminum frame.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="small">
+                The frame is optimized for predictable straight-line motion and quick repositioning between load, defensive placement, and shoot
+                zones.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Shooter and Piece Handling</h2>
+          <div class="columns">
+            <div>
+              <ul>
+                <li>Flywheel launcher maintains wheel speed between shots for quick bursts.</li>
+                <li>Reload path keeps game pieces close to the ground for stable feed-in.</li>
+                <li>Shooter wheel and feed mechanism are staged for repeated multi-piece firing.</li>
+                <li>Beam-break sensing confirms piece transitions through the feed path.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="small">
+                The mechanism is designed for both deliberate placement and aggressive final volleys, depending on game state.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Autonomy, Sensors, and State Machine</h2>
+          <div class="columns">
+            <div>
+              <ul>
+                <li>Two ultrasonic sensors estimate X/Y position from known arena walls.</li>
+                <li>IMU used to hold heading and reduce drift during straight-drive segments.</li>
+                <li>Beam-break sensors support puck detection and shooter sequencing.</li>
+                <li>Optical and long-range ultrasonic piece-detection approaches were tested and rejected for reliability limits.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="small">
+                FSM structure separates motion states (<code>drive_home</code>, <code>drive_shoot_pos</code>, <code>idle</code>) from shooter
+                states (<code>shoot_piece</code>, <code>reload</code>, <code>unload</code>, <code>done</code>) for clearer behavior control.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Cycle Timing Plan</h2>
+          <p class="small">Baseline motion estimate: ~4 seconds travel per leg at approximately 0.5 m/s.</p>
+          <div class="timeline">
+            <div class="step">
+              <div class="label">Cycle 1 (~18s)</div>
+              Travel to launch zone, fire ~3 pucks for defense, return.
+            </div>
+            <div class="step">
+              <div class="label">Cycle 2 (~15s)</div>
+              Reload, travel, drop ~2 pieces on ground for setup, return.
+            </div>
+            <div class="step">
+              <div class="label">Cycle 3 (~15s)</div>
+              Reload, travel, drop ~3 pieces into setup cluster, return.
+            </div>
+            <div class="step">
+              <div class="label">Endgame</div>
+              Wait window, then final two shooting cycles to clear staged pucks quickly.
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <p class="footer">ME210 Robot Documentation Page • Strategy + Mechanical + Controls Snapshot</p>
+    </main>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        var viewer = document.getElementById("robot-model");
+        var status = document.getElementById("viewer-status");
+
+        if (!viewer || !status) {
+          return;
+        }
+
+        if (!customElements.get("model-viewer")) {
+          status.textContent = "3D viewer script did not load. Check internet access or CDN blocking.";
+          status.classList.add("warn");
+          return;
+        }
+
+        viewer.addEventListener("load", function () {
+          status.textContent = "CAD loaded. Drag to rotate, scroll to zoom.";
+        });
+
+        viewer.addEventListener("error", function () {
+          status.textContent =
+            "Could not load assets/robot.glb. Check filename/path and open this page from a local server (http://localhost), not file://.";
+          status.classList.add("warn");
+        });
+      });
+    </script>
+  </body>
+</html>
