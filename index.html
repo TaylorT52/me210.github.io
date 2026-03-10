@@ -346,6 +346,73 @@
         padding: 0.85rem;
       }
 
+      a {
+        color: #0b6d58;
+        text-decoration-thickness: 1.5px;
+        text-underline-offset: 2px;
+      }
+
+      .resource-grid {
+        margin-top: 0.75rem;
+        display: grid;
+        gap: 0.7rem;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      .resource-item {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.7rem 0.8rem;
+      }
+
+      .resource-item p {
+        margin: 0.3rem 0;
+      }
+
+      .calc-grid {
+        margin-top: 0.75rem;
+        display: grid;
+        gap: 0.7rem;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+
+      .calc-card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.7rem 0.8rem;
+      }
+
+      .equation {
+        margin-top: 0.35rem;
+        padding: 0.45rem 0.55rem;
+        border: 1px solid #d7c8af;
+        border-radius: 8px;
+        background: #f8f0e1;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.83rem;
+      }
+
+      .reflection-grid {
+        margin-top: 0.8rem;
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      }
+
+      .reflection-card {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 0.75rem 0.8rem;
+      }
+
+      .reflection-card h3 {
+        margin: 0 0 0.4rem;
+        font-size: 0.98rem;
+      }
+
       .label {
         font-family: "IBM Plex Mono", monospace;
         font-size: 0.78rem;
@@ -484,6 +551,54 @@
               />
               <figcaption>Initial drivetrain and autonomy notes: ultrasonic positioning, IMU heading lock, and early state machine.</figcaption>
             </figure>
+          </div>
+        </section>
+
+        <section class="final-phase">
+          <h2>Design Review Decision and Documentation Bundle</h2>
+          <div class="columns">
+            <div>
+              <p>
+                After the initial design review, we committed to a
+                <span class="accent">mecanum + wall-referenced autonomous shooter</span> architecture because it was the fastest path to
+                reliable points.
+              </p>
+              <ul>
+                <li>Selected because lateral correction and heading hold supported repeatable shot entry angles.</li>
+                <li>Mechanical complexity was kept moderate so integration could finish before final test windows.</li>
+                <li>Control plan emphasized deterministic loops over reactive behaviors with high debug cost.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="small">
+                Later, the encoder failure forced a tactical pivot from full closed-loop shooter speed control to timed feed/firing. The
+                core drive and pose-control architecture remained the same.
+              </p>
+            </div>
+          </div>
+          <div class="resource-grid">
+            <article class="resource-item">
+              <p class="label">Schematics / Wiring Scope</p>
+              <p>PCA9685 PWM control + motor drivers + ultrasonic sensors + MPU6050 on a shared control stack.</p>
+            </article>
+            <article class="resource-item">
+              <p class="label">Drawings</p>
+              <p>
+                <a href="images/initialstrategy.png" target="_blank" rel="noopener noreferrer">initialstrategy.png</a> and
+                <a href="images/intialdrivetrain.png" target="_blank" rel="noopener noreferrer">intialdrivetrain.png</a>.
+              </p>
+            </article>
+            <article class="resource-item">
+              <p class="label">Photos / 3D Model</p>
+              <p>
+                Interactive CAD above plus downloadable
+                <a href="assets/robot.glb" target="_blank" rel="noopener noreferrer">robot.glb</a> for geometry inspection.
+              </p>
+            </article>
+            <article class="resource-item">
+              <p class="label">Calculations</p>
+              <p>Travel-time, loop-budget, and tolerance calculations are documented in the section below.</p>
+            </article>
           </div>
         </section>
 
@@ -651,6 +766,33 @@
           </div>
         </section>
 
+        <section class="final-phase">
+          <h2>Key Calculations and Validation Checks</h2>
+          <p class="small">Quick calculations used to confirm the routine would fit timing and positioning constraints.</p>
+          <div class="calc-grid">
+            <article class="calc-card">
+              <p class="label">Travel Leg Time</p>
+              <div class="equation">d = 67 in = 1.70 m, v ~= 0.50 m/s, t = d / v ~= 3.4 s</div>
+              <p>This set the baseline expectation for each outbound/inbound translation segment.</p>
+            </article>
+            <article class="calc-card">
+              <p class="label">Loop Duration Budget</p>
+              <div class="equation">t_loop ~= (2 x 3.4 s) + 2.5 s firing + 10 s LOOP_WAIT ~= 19.3 s</div>
+              <p>Three loops target roughly 58 seconds, leaving margin for transient correction and startup.</p>
+            </article>
+            <article class="calc-card">
+              <p class="label">Back Setpoint Conversion</p>
+              <div class="equation">BACK_SETPOINT = 160 cm ~= 63 in (near 67 in hog-line reference)</div>
+              <p>This helped tie in-code units to field measurements made during setup.</p>
+            </article>
+            <article class="calc-card">
+              <p class="label">Shot Angle Window</p>
+              <div class="equation">SHOOT_ANGLE = -60 deg with ANGLE_TOLERANCE = +-3 deg (6 deg total window)</div>
+              <p>Small heading window improved consistency without over-constraining turn completion time.</p>
+            </article>
+          </div>
+        </section>
+
         <section>
           <h2>Parts and Costs</h2>
           <ul class="parts-list">
@@ -711,6 +853,49 @@
               February 17, 2026).
             </li>
           </ul>
+        </section>
+
+        <section class="final-phase">
+          <h2>Reflections and Advice for Next Year</h2>
+          <p class="small">
+            Most valuable takeaway: integrated reliability beats isolated subsystem performance. Build around repeatability first.
+          </p>
+          <div class="reflection-grid">
+            <article class="reflection-card">
+              <h3>What Worked Well Together</h3>
+              <ul>
+                <li>Mecanum mobility plus IMU heading hold made reset and re-entry paths highly repeatable.</li>
+                <li>Wall-referenced ultrasonic setpoints reduced dependence on wheel odometry under slip.</li>
+                <li>State-machine structure made debugging faster by isolating failures to specific phases.</li>
+              </ul>
+            </article>
+            <article class="reflection-card">
+              <h3>Integration Challenges</h3>
+              <ul>
+                <li>Encoder hardware damage forced a late-stage control-plan change.</li>
+                <li>Concurrent drive, sensing, and shooter timing created intermittent edge-case drift.</li>
+                <li>Power and wiring noise required careful routing and grounded debugging habits.</li>
+              </ul>
+            </article>
+            <article class="reflection-card">
+              <h3>Arduino and Library Debug Tricks</h3>
+              <ul>
+                <li>Use <code>millis()</code>-based timers instead of long blocking <code>delay()</code> calls in autonomous logic.</li>
+                <li>Apply deadbands around ultrasonic targets to prevent oscillation near setpoints.</li>
+                <li>Clamp and sanity-check sensor readings before feeding them into control decisions.</li>
+                <li>Track per-state entry timestamps so each phase can be tuned and logged independently.</li>
+              </ul>
+            </article>
+            <article class="reflection-card">
+              <h3>Suggestions to Future Teams</h3>
+              <ul>
+                <li>Lock MVP behavior by mid-build and treat extra features as optional until consistency is proven.</li>
+                <li>Keep one known-good autonomous routine always runnable while you test new ideas on a branch path.</li>
+                <li>Capture build photos/video every week; those records are invaluable for handoff and troubleshooting.</li>
+                <li>Budget time for integration-only days, not just subsystem bring-up days.</li>
+              </ul>
+            </article>
+          </div>
         </section>
       </div>
 
