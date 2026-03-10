@@ -236,6 +236,61 @@
         border-radius: 8px;
       }
 
+      .parts-list {
+        margin-top: 0.7rem;
+      }
+
+      .parts-list li {
+        margin: 0.45rem 0;
+        line-height: 1.45;
+      }
+
+      .cost {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 600;
+      }
+
+      .cost-shared {
+        color: #805a00;
+      }
+
+      .initial-note {
+        margin-top: 0.9rem;
+        padding: 0.7rem 0.8rem;
+        background: #fff2dc;
+        border: 1px solid #e4be7b;
+        border-radius: 10px;
+      }
+
+      .initial-gallery {
+        margin-top: 0.85rem;
+        display: grid;
+        gap: 0.8rem;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+
+      .initial-figure {
+        margin: 0;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .initial-figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      .initial-figure figcaption {
+        padding: 0.6rem 0.75rem;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.78rem;
+        color: var(--muted);
+        background: #fff8ea;
+      }
+
       .firmware-block {
         margin-top: 0.8rem;
         border: 1px solid var(--line);
@@ -383,6 +438,47 @@
         </section>
 
         <section>
+          <h2>Initial Design: Encoder + Game Plan</h2>
+          <div class="columns">
+            <div>
+              <p class="small">Early autonomous concept before settling on the final fire-only 3-loop routine.</p>
+              <ul>
+                <li>Start with a fixed launch path to reach a repeatable first shooting location.</li>
+                <li>Fire an initial burst toward the 16 in / 8 in rings, then reset heading and reposition.</li>
+                <li>Run one additional scoring pass if timing remained within the autonomous window.</li>
+                <li>Use a timed fallback path when sensor confidence dropped to keep the routine deterministic.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="small">Initial encoder integration plan (for shooter control and timing gates).</p>
+              <ul>
+                <li>Use the 20 PPR AB hall encoder on the 775 shooter motor for closed-loop RPM control.</li>
+                <li>Count encoder pulses with interrupts and convert pulse rate to shooter wheel speed.</li>
+                <li>Gate feed actions so pucks are released only after the shooter reached target speed.</li>
+                <li>Wheel odometry was considered, then deprioritized because mecanum slip reduced position trust.</li>
+              </ul>
+            </div>
+          </div>
+          <p class="initial-note">
+            <span class="warn">Dropped plan:</span> this initial strategy depended on live encoder feedback, but we fried the encoder during
+            testing, so the final implementation switched to a simpler timed shooter/feed routine.
+          </p>
+          <div class="initial-gallery">
+            <figure class="initial-figure">
+              <img src="images/initialstrategy.png" alt="Annotated initial match strategy with planned final-shot sequence and puck setup path" />
+              <figcaption>Initial strategy sketch: planned late-match shot sequence and puck setup concept.</figcaption>
+            </figure>
+            <figure class="initial-figure">
+              <img
+                src="images/intialdrivetrain.png"
+                alt="Annotated initial drivetrain and sensor layout with ultrasonic and state-machine notes"
+              />
+              <figcaption>Initial drivetrain and autonomy notes: ultrasonic positioning, IMU heading lock, and early state machine.</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section>
           <h2>Drivetrain and Frame</h2>
           <div class="columns">
             <div>
@@ -399,6 +495,76 @@
               </p>
             </div>
           </div>
+        </section>
+
+        <section>
+          <h2>Parts and Costs</h2>
+          <p class="small">
+            Costs are taken from Amazon order totals in the screenshots. Multi-item orders are labeled as shared totals because
+            item-level prices are not visible.
+          </p>
+          <ul class="parts-list">
+            <li>
+              HiPicco FR6ZZ flanged ball bearings (10 pcs) - <span class="cost">$13.08</span> (order placed February 27, 2026;
+              single-item total).
+            </li>
+            <li>
+              Teyleten BTS7960 43A H-bridge motor driver (2 pcs) - <span class="cost cost-shared">Included in $53.44 order total</span>
+              (order placed February 22, 2026).
+            </li>
+            <li>
+              12V 775 DC motor with bracket - <span class="cost cost-shared">Included in $53.44 order total</span> (order placed
+              February 22, 2026).
+            </li>
+            <li>
+              CHANCS 20PPR AB hall encoder for 775 motor - <span class="cost cost-shared">Included in $53.44 order total</span>
+              (order placed February 22, 2026).
+            </li>
+            <li>
+              Greartisan 12V 200 RPM gear motor (qty 3) - <span class="cost">$46.52</span> (order placed February 21, 2026;
+              single-line order).
+            </li>
+            <li>
+              Greartisan 12V 200 RPM gear motor - <span class="cost cost-shared">Included in $81.78 order total</span> (order placed
+              February 20, 2026).
+            </li>
+            <li>
+              L298N dual H-bridge motor driver boards (2 pcs) - <span class="cost cost-shared">Included in $81.78 order total</span>
+              (order placed February 20, 2026).
+            </li>
+            <li>
+              Premium mecanum wheels (60 mm, 4 pcs) - <span class="cost cost-shared">Included in $81.78 order total</span> (order
+              placed February 20, 2026).
+            </li>
+            <li>
+              XL6019 DC-DC boost converters (3 pcs) - <span class="cost cost-shared">Included in $81.78 order total</span> (order
+              placed February 20, 2026).
+            </li>
+            <li>
+              3A mini buck converters (10 pcs) - <span class="cost cost-shared">Included in $81.78 order total</span> (order placed
+              February 20, 2026).
+            </li>
+            <li>
+              Treedix IR break-beam sensors (qty 2) - <span class="cost cost-shared">Included in $56.18 order total</span> (order
+              placed February 17, 2026).
+            </li>
+            <li>
+              HC-SR04 ultrasonic sensors (2 pcs) - <span class="cost cost-shared">Included in $56.18 order total</span> (order placed
+              February 17, 2026).
+            </li>
+            <li>
+              PMW3901 optical flow sensor module - <span class="cost cost-shared">Included in $56.18 order total (later refunded)</span>
+              (order placed February 17, 2026).
+            </li>
+            <li>
+              GY-521 MPU6050 IMU modules (3 pcs) - <span class="cost cost-shared">Included in $56.18 order total</span> (order placed
+              February 17, 2026).
+            </li>
+          </ul>
+          <p class="small">
+            Screenshot order totals add to <span class="cost">$251.00</span> before any item-level refunds, taxes, or shared-cost
+            allocation.
+          </p>
         </section>
 
         <section>
