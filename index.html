@@ -254,6 +254,40 @@
         color: #805a00;
       }
 
+      .phase-label {
+        display: inline-block;
+        margin: 0 0 0.55rem;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .phase-label-initial {
+        background: #fff0ea;
+        border-color: #e5a08d;
+        color: #8a3a2b;
+      }
+
+      .phase-label-final {
+        background: #e8f8f3;
+        border-color: #86ccb7;
+        color: #0d5d49;
+      }
+
+      .initial-phase {
+        border-color: #e5b7aa;
+        background: linear-gradient(170deg, #fff9f7 0%, #fff4ef 100%);
+      }
+
+      .final-phase {
+        border-color: #abd7ca;
+      }
+
       .initial-note {
         margin-top: 0.9rem;
         padding: 0.7rem 0.8rem;
@@ -411,33 +445,8 @@
           </div>
         </section>
 
-        <section>
-          <h2>Strategy Overview</h2>
-          <div class="columns">
-            <div>
-              <p>
-                The current match strategy is a <span class="accent">fire-only autonomous loop</span>: drive to shot position, align, fire
-                pucks into target rings, reset, and repeat.
-              </p>
-              <ul>
-                <li>All autonomous time is spent on positioning and firing pucks into scoring rings.</li>
-                <li>Use ultrasonic + IMU to hit the shooting pose reliably each loop.</li>
-                <li>Spin up shooter, strafe through the shot path, then repeat after a timed reset.</li>
-              </ul>
-            </div>
-            <div>
-              <p class="warn">Scoring target zones:</p>
-              <ul>
-                <li>24 in ring: 1 point</li>
-                <li>16 in ring: 2 points</li>
-                <li>8 in ring: 5 points</li>
-              </ul>
-              <p class="small">Goal is steady scoring on every loop with consistent shot timing.</p>
-            </div>
-          </div>
-        </section>
-
-        <section>
+        <section class="initial-phase">
+          <p class="phase-label phase-label-initial">Initial Concept (Dropped)</p>
           <h2>Initial Design: Encoder + Game Plan</h2>
           <div class="columns">
             <div>
@@ -478,7 +487,34 @@
           </div>
         </section>
 
-        <section>
+        <section class="final-phase">
+          <p class="phase-label phase-label-final">Final Implemented Design</p>
+          <h2>Final Strategy Overview</h2>
+          <div class="columns">
+            <div>
+              <p>
+                The current match strategy is a <span class="accent">fire-only autonomous loop</span>: drive to shot position, align, fire
+                pucks into target rings, reset, and repeat.
+              </p>
+              <ul>
+                <li>All autonomous time is spent on positioning and firing pucks into scoring rings.</li>
+                <li>Use ultrasonic + IMU to hit the shooting pose reliably each loop.</li>
+                <li>Spin up shooter, strafe through the shot path, then repeat after a timed reset.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="warn">Scoring target zones:</p>
+              <ul>
+                <li>24 in ring: 1 point</li>
+                <li>16 in ring: 2 points</li>
+                <li>8 in ring: 5 points</li>
+              </ul>
+              <p class="small">Goal is steady scoring on every loop with consistent shot timing.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="final-phase">
           <h2>Drivetrain and Frame</h2>
           <div class="columns">
             <div>
@@ -493,6 +529,124 @@
               <p class="small">
                 The frame is optimized for predictable straight-line motion and fast reset between repeated shooting loops.
               </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="final-phase">
+          <h2>Shooter and Piece Handling</h2>
+          <div class="columns">
+            <div>
+              <ul>
+                <li>Flywheel launcher maintains wheel speed between shots for quick bursts.</li>
+                <li>Reload path keeps game pieces close to the ground for stable feed-in.</li>
+                <li>Shooter wheel and feed mechanism are tuned for repeated multi-piece firing.</li>
+                <li>Final build uses timed shooter/feed sequencing during each firing pass.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="small">
+                The mechanism is tuned for consistent release timing while the robot runs the same shot loop repeatedly.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="final-phase">
+          <h2>Autonomy, Sensors, and State Machine</h2>
+          <div class="columns">
+            <div>
+              <ul>
+                <li>Two ultrasonic sensors estimate X/Y position from known arena walls.</li>
+                <li>IMU used to hold heading and reduce drift during straight-drive segments.</li>
+                <li>Shot timing is command-driven while navigation relies on ultrasonic + IMU.</li>
+                <li>State machine includes <code>LOOP_WAIT</code> for timed restarts and stops after 3 loops.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="small">
+                Motion and shooter actions are coordinated by defined state-machine steps, with heading hold and sensor-guided positioning.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="final-phase">
+          <h2>Final Arduino Code (Implemented)</h2>
+          <p class="small">The final firmware runs a fire-only routine with timed firing, 10-second loop waits, and a 3-loop cap.</p>
+          <div class="columns">
+            <div>
+              <ul>
+                <li><strong>Core libraries:</strong> <code>Wire</code>, <code>Adafruit_PWMServoDriver</code>, <code>MPU6050_light</code>.</li>
+                <li><strong>Motor control:</strong> all drivetrain + shooter PWM routed through PCA9685 channels.</li>
+                <li><strong>Sensors:</strong> two ultrasonic sensors (right/back), MPU6050 yaw hold, quadrature shooter encoder.</li>
+                <li><strong>Shooter control:</strong> PID loop with <code>KP=0.2</code>, <code>KI=0.8</code>, <code>KD=0.005</code>.</li>
+              </ul>
+            </div>
+            <div>
+              <ul>
+                <li><strong>Main setpoints:</strong> <code>RIGHT_SETPOINT=25cm</code>, <code>BACK_SETPOINT=160cm</code>.</li>
+                <li><strong>Home setpoints:</strong> <code>HOME_RIGHT_SETPOINT=75cm</code>, <code>HOME_BACK_SETPOINT=4cm</code>.</li>
+                <li><strong>Shot alignment:</strong> <code>SHOOT_ANGLE=-60deg</code>, <code>ANGLE_TOLERANCE=3deg</code>.</li>
+                <li><strong>Shooter command:</strong> ramp during strafe using <code>SHOOTER_START(185) + SHOOTER_REDUCE * elapsed</code>.</li>
+                <li><strong>Loop control:</strong> <code>LOOP_WAIT</code> waits 10s and restarts until <code>loopCount == 3</code>.</li>
+              </ul>
+            </div>
+          </div>
+          <details class="firmware-block">
+            <summary>View Final Loop Flow from Code</summary>
+            <div class="firmware-body">
+              <div class="timeline">
+                <div class="step">
+                  <div class="label">Boot + Setup</div>
+                  Initialize MPU6050, calibrate offsets, configure PCA9685 (1 kHz), attach encoder interrupts.
+                </div>
+                <div class="step">
+                  <div class="label">Loop Align</div>
+                  <code>INITIAL_ROTATE</code> -> <code>DRIVE_BACK_TIMED</code> -> <code>STOP_AND_ZERO</code> -> <code>SPIN_180</code>.
+                </div>
+                <div class="step">
+                  <div class="label">Setpoint + Shoot</div>
+                  <code>DRIVE_TO_SETPOINT</code> -> <code>TURN_TO_SHOOT_ANGLE</code> -> <code>SPIN_UP_SHOOTER</code> ->
+                  <code>SHOOT_AND_STRAFE</code>.
+                </div>
+                <div class="step">
+                  <div class="label">Reset + Loop Wait</div>
+                  <code>ROTATE_TO_ZERO</code> -> <code>DRIVE_HOME</code> -> <code>DONE</code> -> <code>LOOP_WAIT(10s)</code> ->
+                  <code>DRIVE_TO_SETPOINT</code>.
+                </div>
+                <div class="step">
+                  <div class="label">Stop Condition</div>
+                  After <code>loopCount >= 3</code>, the robot remains stopped in <code>LOOP_WAIT</code>.
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+
+        <section class="final-phase">
+          <h2>Loop Timing Plan</h2>
+          <p class="small">Baseline motion estimate remains ~4 seconds per travel leg at approximately 0.5 m/s.</p>
+          <div class="timeline">
+            <div class="step">
+              <div class="label">Loop Step 1</div>
+              Align and drive to the shoot setpoint using ultrasonic + IMU heading hold.
+            </div>
+            <div class="step">
+              <div class="label">Loop Step 2</div>
+              Turn to shooting angle, spin up flywheel, and strafe while firing pucks.
+            </div>
+            <div class="step">
+              <div class="label">Loop Step 3</div>
+              Rotate back to zero heading and drive home/reset.
+            </div>
+            <div class="step">
+              <div class="label">Loop Step 4</div>
+              Wait 10 seconds in <code>LOOP_WAIT</code>, then restart from <code>DRIVE_TO_SETPOINT</code>.
+            </div>
+            <div class="step">
+              <div class="label">End Condition</div>
+              Complete 3 loops total, then stay stopped.
             </div>
           </div>
         </section>
@@ -565,124 +719,6 @@
             Screenshot order totals add to <span class="cost">$251.00</span> before any item-level refunds, taxes, or shared-cost
             allocation.
           </p>
-        </section>
-
-        <section>
-          <h2>Shooter and Piece Handling</h2>
-          <div class="columns">
-            <div>
-              <ul>
-                <li>Flywheel launcher maintains wheel speed between shots for quick bursts.</li>
-                <li>Reload path keeps game pieces close to the ground for stable feed-in.</li>
-                <li>Shooter wheel and feed mechanism are tuned for repeated multi-piece firing.</li>
-                <li>Final build uses timed shooter/feed sequencing during each firing pass.</li>
-              </ul>
-            </div>
-            <div>
-              <p class="small">
-                The mechanism is tuned for consistent release timing while the robot runs the same shot loop repeatedly.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h2>Autonomy, Sensors, and State Machine</h2>
-          <div class="columns">
-            <div>
-              <ul>
-                <li>Two ultrasonic sensors estimate X/Y position from known arena walls.</li>
-                <li>IMU used to hold heading and reduce drift during straight-drive segments.</li>
-                <li>Shot timing is command-driven while navigation relies on ultrasonic + IMU.</li>
-                <li>State machine includes <code>LOOP_WAIT</code> for timed restarts and stops after 3 loops.</li>
-              </ul>
-            </div>
-            <div>
-              <p class="small">
-                Motion and shooter actions are coordinated by defined state-machine steps, with heading hold and sensor-guided positioning.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h2>Final Arduino Code (Implemented)</h2>
-          <p class="small">The final firmware runs a fire-only routine with timed firing, 10-second loop waits, and a 3-loop cap.</p>
-          <div class="columns">
-            <div>
-              <ul>
-                <li><strong>Core libraries:</strong> <code>Wire</code>, <code>Adafruit_PWMServoDriver</code>, <code>MPU6050_light</code>.</li>
-                <li><strong>Motor control:</strong> all drivetrain + shooter PWM routed through PCA9685 channels.</li>
-                <li><strong>Sensors:</strong> two ultrasonic sensors (right/back), MPU6050 yaw hold, quadrature shooter encoder.</li>
-                <li><strong>Shooter control:</strong> PID loop with <code>KP=0.2</code>, <code>KI=0.8</code>, <code>KD=0.005</code>.</li>
-              </ul>
-            </div>
-            <div>
-              <ul>
-                <li><strong>Main setpoints:</strong> <code>RIGHT_SETPOINT=25cm</code>, <code>BACK_SETPOINT=160cm</code>.</li>
-                <li><strong>Home setpoints:</strong> <code>HOME_RIGHT_SETPOINT=75cm</code>, <code>HOME_BACK_SETPOINT=4cm</code>.</li>
-                <li><strong>Shot alignment:</strong> <code>SHOOT_ANGLE=-60deg</code>, <code>ANGLE_TOLERANCE=3deg</code>.</li>
-                <li><strong>Shooter command:</strong> ramp during strafe using <code>SHOOTER_START(185) + SHOOTER_REDUCE * elapsed</code>.</li>
-                <li><strong>Loop control:</strong> <code>LOOP_WAIT</code> waits 10s and restarts until <code>loopCount == 3</code>.</li>
-              </ul>
-            </div>
-          </div>
-          <details class="firmware-block">
-            <summary>View Final Loop Flow from Code</summary>
-            <div class="firmware-body">
-              <div class="timeline">
-                <div class="step">
-                  <div class="label">Boot + Setup</div>
-                  Initialize MPU6050, calibrate offsets, configure PCA9685 (1 kHz), attach encoder interrupts.
-                </div>
-                <div class="step">
-                  <div class="label">Loop Align</div>
-                  <code>INITIAL_ROTATE</code> -> <code>DRIVE_BACK_TIMED</code> -> <code>STOP_AND_ZERO</code> -> <code>SPIN_180</code>.
-                </div>
-                <div class="step">
-                  <div class="label">Setpoint + Shoot</div>
-                  <code>DRIVE_TO_SETPOINT</code> -> <code>TURN_TO_SHOOT_ANGLE</code> -> <code>SPIN_UP_SHOOTER</code> ->
-                  <code>SHOOT_AND_STRAFE</code>.
-                </div>
-                <div class="step">
-                  <div class="label">Reset + Loop Wait</div>
-                  <code>ROTATE_TO_ZERO</code> -> <code>DRIVE_HOME</code> -> <code>DONE</code> -> <code>LOOP_WAIT(10s)</code> ->
-                  <code>DRIVE_TO_SETPOINT</code>.
-                </div>
-                <div class="step">
-                  <div class="label">Stop Condition</div>
-                  After <code>loopCount >= 3</code>, the robot remains stopped in <code>LOOP_WAIT</code>.
-                </div>
-              </div>
-            </div>
-          </details>
-        </section>
-
-        <section>
-          <h2>Loop Timing Plan</h2>
-          <p class="small">Baseline motion estimate remains ~4 seconds per travel leg at approximately 0.5 m/s.</p>
-          <div class="timeline">
-            <div class="step">
-              <div class="label">Loop Step 1</div>
-              Align and drive to the shoot setpoint using ultrasonic + IMU heading hold.
-            </div>
-            <div class="step">
-              <div class="label">Loop Step 2</div>
-              Turn to shooting angle, spin up flywheel, and strafe while firing pucks.
-            </div>
-            <div class="step">
-              <div class="label">Loop Step 3</div>
-              Rotate back to zero heading and drive home/reset.
-            </div>
-            <div class="step">
-              <div class="label">Loop Step 4</div>
-              Wait 10 seconds in <code>LOOP_WAIT</code>, then restart from <code>DRIVE_TO_SETPOINT</code>.
-            </div>
-            <div class="step">
-              <div class="label">End Condition</div>
-              Complete 3 loops total, then stay stopped.
-            </div>
-          </div>
         </section>
       </div>
 
